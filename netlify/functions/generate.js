@@ -1,5 +1,4 @@
 // Netlify serverless function — calls Google Gemini API securely
-// Your GEMINI_API_KEY is stored in Netlify environment variables (never exposed to the browser)
 
 exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
@@ -21,7 +20,7 @@ exports.handler = async function (event) {
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return { statusCode: 500, body: JSON.stringify({ error: "API key not configured on the server" }) };
+    return { statusCode: 500, body: JSON.stringify({ error: "GEMINI_API_KEY environment variable is not set" }) };
   }
 
   const prompt = `You are an expert at helping people communicate their boundaries clearly and compassionately.
@@ -45,64 +44,81 @@ Tone guidelines:
 - direct: Clear and confident. No filler. States the boundary without excessive justification. Respectful but leaves no ambiguity.
 - firm: Unambiguous. For when it may not be the first time, or when a strong boundary is needed. Does not leave room for negotiation on the core boundary. Still civil.
 
-Each script should be 2–5 sentences and feel like something a real person would actually say.`;
+Each script should be 2-5 sentences and feel like something a real person would actually say.`;
 
-  try {
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  // Try these models in order until one works
+  const models = [
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-pro",
+  ];
 
-    const response = await fetch(geminiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 1024,
-        },
-      }),
-    });
+  let lastError = null;
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Gemini API error:", errText);
+  for (const model of models) {
+    try {
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+      console.log(`Trying model: ${model}`);
+
+      const response = await fetch(geminiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.8,
+            maxOutputTokens: 1024,
+          },
+        }),
+      });
+
+      const responseText = await response.text();
+      console.log(`Model ${model} response status: ${response.status}`);
+      console.log(`Model ${model} response body: ${responseText}`);
+
+      if (!response.ok) {
+        lastError = `Model ${model} failed with status ${response.status}: ${responseText}`;
+        continue; // try next model
+      }
+
+      const data = JSON.parse(responseText);
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!rawText) {
+        lastError = `Model ${model} returned empty text`;
+        continue;
+      }
+
+      const cleaned = rawText.replace(/```json|```/g, "").trim();
+      const scripts = JSON.parse(cleaned);
+
+      if (!scripts.gentle || !scripts.direct || !scripts.firm) {
+        lastError = `Model ${model} returned incomplete scripts`;
+        continue;
+      }
+
+      // Success!
       return {
-        statusCode: 502,
-        body: JSON.stringify({ error: "Failed to reach AI service. Please try again." }),
+        statusCode: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify({ scripts }),
       };
+
+    } catch (err) {
+      lastError = `Model ${model} threw error: ${err.message}`;
+      console.error(lastError);
+      continue;
     }
-
-    const data = await response.json();
-
-    // Extract text from Gemini response structure
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!rawText) {
-      throw new Error("Empty response from Gemini");
-    }
-
-    // Strip any accidental markdown code fences Gemini sometimes adds
-    const cleaned = rawText.replace(/```json|```/g, "").trim();
-
-    const scripts = JSON.parse(cleaned);
-
-    if (!scripts.gentle || !scripts.direct || !scripts.firm) {
-      throw new Error("Incomplete scripts returned from AI");
-    }
-
-    return {
-      statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify({ scripts }),
-    };
-
-  } catch (err) {
-    console.error("Function error:", err.message);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Something went wrong generating your scripts. Please try again." }),
-    };
   }
+
+  // All models failed
+  console.error("All models failed. Last error:", lastError);
+  return {
+    statusCode: 500,
+    body: JSON.stringify({ error: `All models failed. Last error: ${lastError}` }),
+  };
 };

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Say It — Boundary Script Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="grain"></div>
+
+  <header class="site-header">
+    <div class="logo">Say It.</div>
+    <p class="tagline">No people-pleasing required.</p>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>
+        You already know<br />
+        <em>what you need.</em><br />
+        We'll help you say it.
+      </h1>
+      <p class="hero-sub">
+        Saying no to extra work. Telling a flatmate the kitchen is a mess.
+        Pushing back on a family expectation. Enter your situation — get three scripts.
+      </p>
+    </section>
+
+    <section class="form-section">
+      <div class="form-card">
+        <div class="form-group">
+          <label for="situation">What's the situation?</label>
+          <textarea
+            id="situation"
+            placeholder="e.g. My manager keeps piling on tasks at 5pm on Fridays and I feel I can't say no without jeopardising my position."
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="relationship">Who is this person to you?</label>
+            <div class="select-wrapper">
+              <select id="relationship">
+                <option value="" disabled selected>Select a relationship</option>
+                <option>Manager / Boss</option>
+                <option>Colleague</option>
+                <option>Friend</option>
+                <option>Romantic partner</option>
+                <option>Family member</option>
+                <option>Flatmate / Housemate</option>
+                <option>Neighbour</option>
+                <option>Acquaintance</option>
+                <option>Client</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="goal">What's your goal?</label>
+            <div class="select-wrapper">
+              <select id="goal">
+                <option value="" disabled selected>Select your goal</option>
+                <option>Say no without guilt</option>
+                <option>Set a recurring boundary</option>
+                <option>Address a behaviour that's bothering me</option>
+                <option>Decline a request</option>
+                <option>Push back on an expectation</option>
+                <option>End or pause a conversation</option>
+                <option>Ask for space or time</option>
+                <option>Protect my time / workload</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button class="generate-btn" id="generateBtn" onclick="generateScripts()">
+          <span class="btn-text">Generate my scripts</span>
+          <span class="btn-loader" style="display:none">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <section class="results-section" id="resultsSection" style="display:none">
+      <div class="results-header">
+        <p class="results-eyebrow">Your scripts</p>
+        <h2>Three ways to say it.</h2>
+        <p class="results-sub">Pick the one that feels right. Edit it. Make it yours.</p>
+      </div>
+
+      <div class="scripts-grid" id="scriptsGrid"></div>
+
+      <button class="reset-btn" onclick="resetForm()">← Try another situation</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>Say It. — Because boundaries are a form of self-respect.</p>
+  </footer>
+
+  <div id="toast" class="toast">Copied to clipboard ✓</div>
+
+  <script src="app.js"></script>
+</body>
+</html>

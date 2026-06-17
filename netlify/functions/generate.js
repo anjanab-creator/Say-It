@@ -46,11 +46,10 @@ Tone guidelines:
 
 Each script should be 2-5 sentences and feel like something a real person would actually say.`;
 
-  // Try these models in order until one works
   const models = [
-    "gemini-1.5-flash",
-    "gemini-1.5-flash-latest",
-    "gemini-pro",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-1.5-flash-8b",
   ];
 
   let lastError = null;
@@ -74,12 +73,12 @@ Each script should be 2-5 sentences and feel like something a real person would 
       });
 
       const responseText = await response.text();
-      console.log(`Model ${model} response status: ${response.status}`);
-      console.log(`Model ${model} response body: ${responseText}`);
+      console.log(`Model ${model} status: ${response.status}`);
+      console.log(`Model ${model} body: ${responseText}`);
 
       if (!response.ok) {
-        lastError = `Model ${model} failed with status ${response.status}: ${responseText}`;
-        continue; // try next model
+        lastError = `Model ${model} failed (${response.status}): ${responseText}`;
+        continue;
       }
 
       const data = JSON.parse(responseText);
@@ -98,7 +97,6 @@ Each script should be 2-5 sentences and feel like something a real person would 
         continue;
       }
 
-      // Success!
       return {
         statusCode: 200,
         headers: {
@@ -115,7 +113,6 @@ Each script should be 2-5 sentences and feel like something a real person would 
     }
   }
 
-  // All models failed
   console.error("All models failed. Last error:", lastError);
   return {
     statusCode: 500,

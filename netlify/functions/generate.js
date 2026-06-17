@@ -47,9 +47,7 @@ Tone guidelines:
 Each script should be 2-5 sentences and feel like something a real person would actually say.`;
 
   const models = [
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
-    "gemini-1.5-flash-8b",
+    "gemini-3-flash-preview",
   ];
 
   let lastError = null;

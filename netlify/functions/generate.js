@@ -48,6 +48,8 @@ Each script should be 2-5 sentences and feel like something a real person would 
 
   const models = [
     "gemini-3-flash-preview",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
   ];
 
   let lastError = null;

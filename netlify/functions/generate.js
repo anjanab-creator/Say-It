@@ -12,9 +12,9 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ error: "Invalid request body" }) };
   }
 
-  const { situation, relationship, goal } = body;
+  const { situation, goal, length } = body;
 
-  if (!situation || !relationship || !goal) {
+  if (!situation || !goal || !length) {
     return { statusCode: 400, body: JSON.stringify({ error: "Missing required fields" }) };
   }
 
@@ -23,16 +23,27 @@ exports.handler = async function (event) {
     return { statusCode: 500, body: JSON.stringify({ error: "GEMINI_API_KEY environment variable is not set" }) };
   }
 
-  const prompt = `You are an expert at helping people communicate their boundaries clearly and compassionately.
+  const lengthGuide = {
+    "One sentence": "Each script must be exactly one sentence.",
+    "Text message": "Each script should be 2-3 sentences, casual and natural, as if sent over text.",
+    "Short paragraph": "Each script should be a short paragraph of 3-5 sentences.",
+    "Conversation": "Each script should be a full conversational response of 4-6 sentences with natural pacing.",
+  };
 
-The user has provided the following:
+  const lengthInstruction = lengthGuide[length] || "Each script should be 2-4 sentences.";
+
+  const prompt = `You are an expert at helping people communicate their boundaries clearly and compassionately. You infer the relationship context from the situation described.
+
+The user has provided:
 - Situation: ${situation}
-- Their relationship with this person: ${relationship}
-- Their goal: ${goal}
+- Goal: ${goal}
+- Length: ${length}
+
+Length instruction: ${lengthInstruction}
 
 Generate exactly 3 boundary-setting scripts. Each should sound natural and spoken, not corporate or stiff. Use first-person voice ("I...").
 
-Return ONLY a valid JSON object with no markdown, no code fences, no explanation — just the raw JSON:
+Return ONLY a valid JSON object with no markdown, no code fences, no explanation — just raw JSON:
 {
   "gentle": "...",
   "direct": "...",
@@ -40,14 +51,16 @@ Return ONLY a valid JSON object with no markdown, no code fences, no explanation
 }
 
 Tone guidelines:
-- gentle: Warm, acknowledges the relationship, uses softening language but still sets the boundary clearly. Not apologetic or self-undermining.
+- gentle: Warm, kind, acknowledges the relationship and the other person's feelings. Sets the boundary clearly but with care. Not apologetic or self-undermining.
 - direct: Clear and confident. No filler. States the boundary without excessive justification. Respectful but leaves no ambiguity.
-- firm: Unambiguous. For when it may not be the first time, or when a strong boundary is needed. Does not leave room for negotiation on the core boundary. Still civil.
+- firm: Unambiguous and strong. For when a clear line must be drawn. Does not leave room for negotiation on the core boundary. Still civil, never aggressive.
 
-Each script should be 2-5 sentences and feel like something a real person would actually say.`;
+Each script must feel like something a real person would actually say in this situation.`;
 
   const models = [
     "gemini-3-flash-preview",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
   ];
 
   let lastError = null;
@@ -64,15 +77,14 @@ Each script should be 2-5 sentences and feel like something a real person would 
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.8,
-            maxOutputTokens: 1024,
+            temperature: 0.85,
+            maxOutputTokens: 1200,
           },
         }),
       });
 
       const responseText = await response.text();
       console.log(`Model ${model} status: ${response.status}`);
-      console.log(`Model ${model} body: ${responseText}`);
 
       if (!response.ok) {
         lastError = `Model ${model} failed (${response.status}): ${responseText}`;

@@ -3,34 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Say It.</title>
+  <title>Say It. — because ghosting isn't a long-term strategy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Special+Elite&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <div class="bg-scene">
-    <div class="bg-image"></div>
-    <div class="bg-overlay"></div>
+    <div class="bg-wash"></div>
+    <div class="grain-overlay"></div>
+  </div>
+
+  <!-- floating decorative elements -->
+  <div class="deco deco-star1" aria-hidden="true">✦</div>
+  <div class="deco deco-star2" aria-hidden="true">✶</div>
+  <div class="deco deco-star3" aria-hidden="true">✦</div>
+  <div class="deco deco-sun" aria-hidden="true">☀</div>
+  <div class="deco deco-bird1" aria-hidden="true">〰</div>
+  <div class="deco deco-postmark" aria-hidden="true">
+    <div class="postmark-ring">
+      <span>SAY IT</span>
+    </div>
+  </div>
+  <div class="deco deco-stamp" aria-hidden="true">
+    <div class="stamp-inner">BOUNDARIES<br/>DELIVERED</div>
+  </div>
+
+  <!-- the weightlifter -->
+  <div class="weightlifter" aria-hidden="true">
+    <div class="weightlifter-img">🏋️</div>
+    <div class="weightlifter-caption">we do the heavy lifting</div>
   </div>
 
   <div class="app-shell">
 
     <header class="site-header">
-      <p class="header-eyebrow">You already know what you need</p>
+      <div class="header-tag">est. the moment you got tired of saying yes</div>
       <h1 class="header-headline">Say It.</h1>
-      <p class="header-sub">Saying no to extra work. Setting expectations.<br />Creating boundaries. Enter your situation and get three ways to say it.</p>
+      <p class="header-sub">because ghosting isn't a long-term strategy</p>
     </header>
 
     <main class="main-grid">
 
+      <!-- LEFT: INPUT -->
       <section class="panel panel-left" aria-label="Input">
-        <div class="glass-card">
+        <div class="panel-card">
+
+          <div class="panel-label-strip">
+            <span class="panel-tag">your situation</span>
+          </div>
 
           <div class="field-group">
-            <label class="field-label" for="situation">What's the situation?</label>
+            <label class="field-label" for="situation">what's going on?</label>
             <textarea
               id="situation"
               class="field-textarea"
@@ -40,10 +66,10 @@
           </div>
 
           <div class="field-group">
-            <label class="field-label" for="goal">What's your goal?</label>
+            <label class="field-label" for="goal">what do you want to achieve?</label>
             <div class="select-wrap">
               <select id="goal" class="field-select">
-                <option value="" disabled selected>Choose a goal</option>
+                <option value="" disabled selected>choose a goal</option>
                 <option>Set a recurring boundary</option>
                 <option>Say no politely</option>
                 <option>Push back respectfully</option>
@@ -56,10 +82,10 @@
           </div>
 
           <div class="field-group">
-            <label class="field-label" for="length">How long should it be?</label>
+            <label class="field-label" for="length">how long should it be?</label>
             <div class="select-wrap">
               <select id="length" class="field-select">
-                <option value="" disabled selected>Choose a length</option>
+                <option value="" disabled selected>choose a length</option>
                 <option>One sentence</option>
                 <option>Text message</option>
                 <option>Short paragraph</option>
@@ -73,29 +99,38 @@
             <span class="btn-label" id="btnLabel">Generate My Scripts</span>
           </button>
 
+          <p class="btn-footnote">your future self says thanks</p>
+
         </div>
       </section>
 
+      <!-- RIGHT: RESULTS -->
       <section class="panel panel-right" aria-label="Results">
-        <div class="results-inner" id="resultsInner">
+        <div class="panel-card results-card">
+
+          <div class="panel-label-strip">
+            <span class="panel-tag">your scripts</span>
+          </div>
 
           <div class="results-empty" id="resultsEmpty">
-            <div class="empty-icon">✦</div>
-            <p class="empty-title">Your scripts will appear here.</p>
-            <p class="empty-sub">Fill in your situation on the left and generate.</p>
+            <div class="empty-inner">
+              <p class="empty-big">✦</p>
+              <p class="empty-title">your words are waiting.</p>
+              <p class="empty-sub">fill in your situation and hit generate.<br/>we'll do the emotional heavy lifting.</p>
+            </div>
           </div>
 
           <div class="results-loaded" id="resultsLoaded" style="display:none">
             <div class="results-header">
-              <p class="results-eyebrow">Your Scripts</p>
-              <p class="results-sub">Three ways to say it. Pick the one that feels right.</p>
+              <p class="results-title">three ways to say it.</p>
+              <p class="results-sub">pick the one that feels like you.</p>
             </div>
 
             <div class="cards-stack" id="cardsStack"></div>
 
             <div class="floating-copy" id="floatingCopy" style="display:none">
-              <button class="copy-btn" id="copyBtn" onclick="copySelected()">
-                <span id="copyBtnLabel">Copy Selected Script</span>
+              <button class="copy-btn" onclick="copySelected()">
+                <span id="copyBtnLabel">copy selected script</span>
               </button>
             </div>
           </div>
@@ -107,7 +142,7 @@
 
   </div>
 
-  <div id="toast" class="toast">Copied ✓</div>
+  <div id="toast" class="toast">copied to clipboard ✓</div>
 
   <script src="app.js"></script>
 </body>

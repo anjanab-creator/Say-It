@@ -3,109 +3,111 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Say It — Boundary Script Generator</title>
+  <title>Say It.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="grain"></div>
 
-  <header class="site-header">
-    <div class="logo">Say It.</div>
-    <p class="tagline">No people-pleasing required.</p>
-  </header>
+  <div class="bg-scene">
+    <div class="bg-image"></div>
+    <div class="bg-overlay"></div>
+  </div>
 
-  <main>
-    <section class="hero">
-      <h1>
-        You already know<br />
-        <em>what you need.</em><br />
-        We'll help you say it.
-      </h1>
-      <p class="hero-sub">
-        Saying no to extra work. Telling a flatmate the kitchen is a mess.
-        Pushing back on a family expectation. Enter your situation — get three scripts.
-      </p>
-    </section>
+  <div class="app-shell">
 
-    <section class="form-section">
-      <div class="form-card">
-        <div class="form-group">
-          <label for="situation">What's the situation?</label>
-          <textarea
-            id="situation"
-            placeholder="e.g. My manager keeps piling on tasks at 5pm on Fridays and I feel I can't say no without jeopardising my position."
-            rows="3"
-          ></textarea>
-        </div>
+    <header class="site-header">
+      <p class="header-eyebrow">You already know what you need</p>
+      <h1 class="header-headline">Say It.</h1>
+      <p class="header-sub">Saying no to extra work. Setting expectations.<br />Creating boundaries. Enter your situation and get three ways to say it.</p>
+    </header>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="relationship">Who is this person to you?</label>
-            <div class="select-wrapper">
-              <select id="relationship">
-                <option value="" disabled selected>Select a relationship</option>
-                <option>Manager / Boss</option>
-                <option>Colleague</option>
-                <option>Friend</option>
-                <option>Romantic partner</option>
-                <option>Family member</option>
-                <option>Flatmate / Housemate</option>
-                <option>Neighbour</option>
-                <option>Acquaintance</option>
-                <option>Client</option>
-                <option>Other</option>
-              </select>
-            </div>
+    <main class="main-grid">
+
+      <section class="panel panel-left" aria-label="Input">
+        <div class="glass-card">
+
+          <div class="field-group">
+            <label class="field-label" for="situation">What's the situation?</label>
+            <textarea
+              id="situation"
+              class="field-textarea"
+              placeholder="My friend keeps inviting me out late and I want to start protecting my evenings without hurting the friendship."
+              rows="5"
+            ></textarea>
           </div>
 
-          <div class="form-group">
-            <label for="goal">What's your goal?</label>
-            <div class="select-wrapper">
-              <select id="goal">
-                <option value="" disabled selected>Select your goal</option>
-                <option>Say no without guilt</option>
+          <div class="field-group">
+            <label class="field-label" for="goal">What's your goal?</label>
+            <div class="select-wrap">
+              <select id="goal" class="field-select">
+                <option value="" disabled selected>Choose a goal</option>
                 <option>Set a recurring boundary</option>
-                <option>Address a behaviour that's bothering me</option>
-                <option>Decline a request</option>
-                <option>Push back on an expectation</option>
-                <option>End or pause a conversation</option>
-                <option>Ask for space or time</option>
-                <option>Protect my time / workload</option>
+                <option>Say no politely</option>
+                <option>Push back respectfully</option>
+                <option>Ask for space</option>
+                <option>Express frustration calmly</option>
+                <option>Clarify expectations</option>
               </select>
+              <span class="select-arrow">↓</span>
             </div>
           </div>
+
+          <div class="field-group">
+            <label class="field-label" for="length">How long should it be?</label>
+            <div class="select-wrap">
+              <select id="length" class="field-select">
+                <option value="" disabled selected>Choose a length</option>
+                <option>One sentence</option>
+                <option>Text message</option>
+                <option>Short paragraph</option>
+                <option>Conversation</option>
+              </select>
+              <span class="select-arrow">↓</span>
+            </div>
+          </div>
+
+          <button class="generate-btn" id="generateBtn" onclick="generateScripts()">
+            <span class="btn-label" id="btnLabel">Generate My Scripts</span>
+          </button>
+
         </div>
+      </section>
 
-        <button class="generate-btn" id="generateBtn" onclick="generateScripts()">
-          <span class="btn-text">Generate my scripts</span>
-          <span class="btn-loader" style="display:none">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-          </span>
-        </button>
-      </div>
-    </section>
+      <section class="panel panel-right" aria-label="Results">
+        <div class="results-inner" id="resultsInner">
 
-    <section class="results-section" id="resultsSection" style="display:none">
-      <div class="results-header">
-        <p class="results-eyebrow">Your scripts</p>
-        <h2>Three ways to say it.</h2>
-        <p class="results-sub">Pick the one that feels right. Edit it. Make it yours.</p>
-      </div>
+          <div class="results-empty" id="resultsEmpty">
+            <div class="empty-icon">✦</div>
+            <p class="empty-title">Your scripts will appear here.</p>
+            <p class="empty-sub">Fill in your situation on the left and generate.</p>
+          </div>
 
-      <div class="scripts-grid" id="scriptsGrid"></div>
+          <div class="results-loaded" id="resultsLoaded" style="display:none">
+            <div class="results-header">
+              <p class="results-eyebrow">Your Scripts</p>
+              <p class="results-sub">Three ways to say it. Pick the one that feels right.</p>
+            </div>
 
-      <button class="reset-btn" onclick="resetForm()">← Try another situation</button>
-    </section>
-  </main>
+            <div class="cards-stack" id="cardsStack"></div>
 
-  <footer>
-    <p>Say It. — Because boundaries are a form of self-respect.</p>
-  </footer>
+            <div class="floating-copy" id="floatingCopy" style="display:none">
+              <button class="copy-btn" id="copyBtn" onclick="copySelected()">
+                <span id="copyBtnLabel">Copy Selected Script</span>
+              </button>
+            </div>
+          </div>
 
-  <div id="toast" class="toast">Copied to clipboard ✓</div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <div id="toast" class="toast">Copied ✓</div>
 
   <script src="app.js"></script>
 </body>

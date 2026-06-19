@@ -1,118 +1,183 @@
+// SAY IT. v2 — app.js
+
+const BTN_STAGES = [
+  "Untangling thoughts\u2026",
+  "Finding your voice\u2026",
+  "Here\u2019s what to say."
+];
+
+let selectedCard = null;
+
 async function generateScripts() {
   const situation = document.getElementById("situation").value.trim();
-  const relationship = document.getElementById("relationship").value;
-  const goal = document.getElementById("goal").value;
+  const goal      = document.getElementById("goal").value;
+  const length    = document.getElementById("length").value;
 
   if (!situation) { shakeField("situation"); return; }
-  if (!relationship) { shakeField("relationship"); return; }
-  if (!goal) { shakeField("goal"); return; }
+  if (!goal)      { shakeField("goal");      return; }
+  if (!length)    { shakeField("length");    return; }
 
+  selectedCard = null;
   setLoading(true);
+  await runBtnAnimation();
 
   try {
-    const response = await fetch("/.netlify/functions/generate", {
+    const res = await fetch("/.netlify/functions/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ situation, relationship, goal }),
+      body: JSON.stringify({ situation, goal, length }),
     });
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.error || "Server error: " + response.status);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Server error " + res.status);
     }
 
-    const data = await response.json();
+    const data = await res.json();
     renderScripts(data.scripts);
   } catch (err) {
     showError(err.message || "Something went wrong. Please try again.");
   } finally {
     setLoading(false);
+    resetBtn();
   }
 }
 
+function runBtnAnimation() {
+  return new Promise(resolve => {
+    const label = document.getElementById("btnLabel");
+    let i = 0;
+
+    const tick = () => {
+      label.style.opacity = "0";
+      setTimeout(() => {
+        label.textContent = BTN_STAGES[i];
+        label.style.opacity = "1";
+        i++;
+        if (i < BTN_STAGES.length) {
+          setTimeout(tick, 900);
+        } else {
+          setTimeout(resolve, 600);
+        }
+      }, 220);
+    };
+
+    tick();
+  });
+}
+
+function resetBtn() {
+  const label = document.getElementById("btnLabel");
+  label.style.opacity = "0";
+  setTimeout(() => {
+    label.textContent = "Generate My Scripts";
+    label.style.opacity = "1";
+  }, 200);
+}
+
 function renderScripts(scripts) {
-  const section = document.getElementById("resultsSection");
-  const grid = document.getElementById("scriptsGrid");
+  const empty  = document.getElementById("resultsEmpty");
+  const loaded = document.getElementById("resultsLoaded");
+  const stack  = document.getElementById("cardsStack");
 
   const tones = [
-    { key: "gentle", label: "Gentle", title: "Kind & warm", description: "Preserves the relationship. Good for people you care about or ongoing dynamics.", delay: "0s" },
-    { key: "direct", label: "Direct", title: "Clear & confident", description: "No waffle, no apology tour. Respectful but unmistakably clear.", delay: "0.1s" },
-    { key: "firm",   label: "Firm",   title: "Strong & final",  description: "For when it's not the first time — or when you need them to really hear you.", delay: "0.2s" },
+    { key: "gentle", label: "Gentle", feel: "This feels right" },
+    { key: "direct", label: "Direct", feel: "This feels right" },
+    { key: "firm",   label: "Firm",   feel: "This feels right" },
   ];
 
-  grid.innerHTML = tones.map(tone => `
-    <div class="script-card ${tone.key}" style="animation: fadeUp 0.4s ease both; animation-delay: ${tone.delay}">
-      <div class="card-tone">
-        <span class="tone-dot"></span>
-        <span class="tone-label">${tone.label}</span>
+  stack.innerHTML = tones.map((t, i) => `
+    <div
+      class="script-card ${t.key}"
+      id="card-${t.key}"
+      onclick="selectCard('${t.key}')"
+      style="animation-delay: ${i * 0.1}s"
+      role="button"
+      tabindex="0"
+      aria-label="${t.label} script"
+      onkeydown="if(event.key==='Enter'||event.key===' ')selectCard('${t.key}')"
+    >
+      <div class="card-top">
+        <span class="card-tone">${t.label}</span>
+        <span class="card-check">✓ This feels right</span>
       </div>
-      <div class="card-title">${tone.title}</div>
-      <p class="card-description">${tone.description}</p>
-      <p class="card-script" id="script-${tone.key}">${escapeHtml(scripts[tone.key] || "")}</p>
-      <button class="copy-btn" onclick="copyScript('${tone.key}')">Copy</button>
+      <p class="card-script" id="script-${t.key}">${escapeHtml(scripts[t.key] || "")}</p>
     </div>
   `).join("");
 
-  section.style.display = "block";
-  section.scrollIntoView({ behavior: "smooth", block: "start" });
+  empty.style.display  = "none";
+  loaded.style.display = "flex";
+  document.getElementById("floatingCopy").style.display = "none";
 }
 
-function copyScript(key) {
-  const el = document.getElementById("script-" + key);
+function selectCard(key) {
+  selectedCard = key;
+
+  document.querySelectorAll(".script-card").forEach(c => c.classList.remove("selected"));
+  document.getElementById("card-" + key).classList.add("selected");
+
+  const fc = document.getElementById("floatingCopy");
+  fc.style.display = "block";
+}
+
+function copySelected() {
+  if (!selectedCard) return;
+  const el = document.getElementById("script-" + selectedCard);
   if (!el) return;
-  navigator.clipboard.writeText(el.textContent.trim()).then(showToast);
+
+  navigator.clipboard.writeText(el.textContent.trim()).then(() => {
+    const btn = document.getElementById("copyBtnLabel");
+    btn.textContent = "Copied \u2713";
+    document.getElementById("toast").classList.add("show");
+
+    setTimeout(() => {
+      btn.textContent = "Copy Selected Script";
+      document.getElementById("toast").classList.remove("show");
+    }, 2000);
+  });
 }
 
-function showToast() {
-  const t = document.getElementById("toast");
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 2200);
-}
-
-function resetForm() {
-  document.getElementById("resultsSection").style.display = "none";
-  document.getElementById("situation").value = "";
-  document.getElementById("relationship").value = "";
-  document.getElementById("goal").value = "";
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-function setLoading(isLoading) {
+function setLoading(on) {
   const btn = document.getElementById("generateBtn");
-  btn.disabled = isLoading;
-  btn.querySelector(".btn-text").style.display = isLoading ? "none" : "inline";
-  btn.querySelector(".btn-loader").style.display = isLoading ? "flex" : "none";
+  btn.disabled = on;
 }
 
-function showError(message) {
-  const btn = document.getElementById("generateBtn");
-  btn.querySelector(".btn-text").textContent = "⚠ " + message;
-  btn.querySelector(".btn-text").style.display = "inline";
-  btn.style.background = "#b87070";
-  btn.disabled = false;
+function showError(msg) {
+  const label = document.getElementById("btnLabel");
+  label.style.opacity = "0";
   setTimeout(() => {
-    btn.querySelector(".btn-text").textContent = "Generate my scripts";
+    label.textContent = "\u26A0 " + msg;
+    label.style.opacity = "1";
+  }, 200);
+
+  const btn = document.getElementById("generateBtn");
+  btn.style.background = "#C47A7A";
+  btn.disabled = false;
+
+  setTimeout(() => {
     btn.style.background = "";
+    resetBtn();
   }, 4000);
 }
 
 function shakeField(id) {
   const el = document.getElementById(id);
+  if (!el) return;
   el.style.animation = "none";
-  el.offsetHeight;
+  void el.offsetHeight;
   el.style.animation = "shake 0.4s ease";
   el.focus();
-  setTimeout(() => el.style.animation = "", 500);
-  if (!document.getElementById("shakeStyle")) {
+  if (!document.getElementById("shakeKf")) {
     const s = document.createElement("style");
-    s.id = "shakeStyle";
-    s.textContent = `@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}`;
+    s.id = "shakeKf";
+    s.textContent = `@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}`;
     document.head.appendChild(s);
   }
+  setTimeout(() => el.style.animation = "", 500);
 }
 
-function escapeHtml(str) {
-  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+function escapeHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
